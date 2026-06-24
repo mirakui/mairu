@@ -199,10 +199,11 @@ pub struct LoginArgs {
 }
 ```
 
-> **Note (post-review correction):** `MAIRU_NO_BROWSER` is interpreted manually
-> in `browser.rs` (`no_browser_env()`), not via clap `env =`, because a clap
-> `bool` flag with `env =` aborts on values like `MAIRU_NO_BROWSER=1`. See the
-> design spec for details.
+> **Note (post-review correction):** `MAIRU_NO_BROWSER` is read by presence at
+> the call site in `cmd::login::login()`
+> (`std::env::var_os("MAIRU_NO_BROWSER").is_some()`, like `MAIRU_NO_AUTO_AGENT`),
+> not via clap `env =`, because a clap `bool` flag with `env =` aborts on values
+> like `MAIRU_NO_BROWSER=1`. See the design spec for details.
 
 - [ ] **Step 2: Pass `no_browser` into the flow handlers**
 

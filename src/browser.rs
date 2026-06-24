@@ -8,17 +8,6 @@ pub fn should_open(no_browser: bool, is_terminal: bool) -> bool {
     !no_browser && is_terminal
 }
 
-/// Whether the `MAIRU_NO_BROWSER` environment variable requests disabling
-/// automatic browser opening.
-///
-/// Presence-based, mirroring `MAIRU_NO_AUTO_AGENT`: setting the variable to any
-/// value (even empty) disables auto-open. It is read manually rather than via
-/// clap's `env =` because a clap `bool` flag with `env =` only accepts the
-/// literal `true`/`false` and would abort the command on `MAIRU_NO_BROWSER=1`.
-pub fn no_browser_env() -> bool {
-    std::env::var_os("MAIRU_NO_BROWSER").is_some()
-}
-
 /// Best-effort: open `url` in the user's default browser.
 ///
 /// Never returns an error to the caller — the URL is always printed first as a

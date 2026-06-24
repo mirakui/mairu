@@ -97,20 +97,16 @@ pub no_browser: bool,
 The `MAIRU_NO_BROWSER` env var is **not** wired via clap's `env =`. A clap
 `bool` flag with `env =` only accepts the literal `true`/`false` from the
 environment and aborts the command on any other value (so `MAIRU_NO_BROWSER=1`
-would error). Instead the env var is interpreted manually in `browser.rs`:
+would error). Instead the env var is read by presence at the call site in
+`cmd::login::login()`, mirroring the existing `MAIRU_NO_AUTO_AGENT`
+(`src/cmd/agent.rs`) — setting the variable to any value (even empty) disables
+auto-open:
 
 ```rust
-pub fn no_browser_env() -> bool {
-    std::env::var_os("MAIRU_NO_BROWSER").is_some()
-}
+let no_browser = args.no_browser || std::env::var_os("MAIRU_NO_BROWSER").is_some();
 ```
 
-Presence-based, mirroring the existing `MAIRU_NO_AUTO_AGENT`
-(`src/cmd/agent.rs`): setting the variable to any value (even empty) disables
-auto-open.
-
-`cmd::login::login()` resolves the effective value once and passes it down:
-`let no_browser = args.no_browser || crate::browser::no_browser_env();`. Because
+The effective value is resolved once and passed to both flow handlers. Because
 `mairu exec`'s login path also goes through `cmd::login::login()`, the env var
 is honored for both entry points (and `src/cmd/exec.rs::login()` still sets
 `no_browser: args.no_browser` so the CLI flag propagates from `mairu exec`).

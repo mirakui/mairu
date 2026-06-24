@@ -53,9 +53,10 @@ pub async fn login(
     tracing::debug!(oauth_grant_type = ?oauth_grant_type, server = ?server, "Using OAuth");
 
     // The --no-browser flag and the MAIRU_NO_BROWSER environment variable both
-    // disable automatic browser opening. The env var is interpreted here (not
-    // via clap) so that values like `1` never abort the command.
-    let no_browser = args.no_browser || crate::browser::no_browser_env();
+    // disable automatic browser opening. The env var is read here by presence
+    // (like MAIRU_NO_AUTO_AGENT), not via clap's `env =`, so that values like
+    // `1` never abort the command.
+    let no_browser = args.no_browser || std::env::var_os("MAIRU_NO_BROWSER").is_some();
 
     match oauth_grant_type {
         crate::config::OAuthGrantType::Code => do_oauth_code(agent, server, no_browser).await,
