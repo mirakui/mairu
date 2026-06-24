@@ -40,7 +40,7 @@ the Rust equivalent of CPython's `webbrowser` module used by aws-cli.
 | Topic | Decision |
 | --- | --- |
 | Trigger mode | Auto-open by default (opt-out), matching `aws sso login`. |
-| Disable mechanism | `--no-browser` flag **and** `MAIRU_NO_BROWSER` env var. The env var is interpreted manually (truthy = `1`/`true`/`yes`/`on`) rather than via clap `env =`, because a clap `bool` flag with `env =` only accepts `true`/`false` and aborts the command on `MAIRU_NO_BROWSER=1`. |
+| Disable mechanism | `--no-browser` flag **and** `MAIRU_NO_BROWSER` env var. The env var is read manually via `std::env::var_os(...).is_some()` (presence-based, mirroring the existing `MAIRU_NO_AUTO_AGENT`) rather than via clap `env =`, because a clap `bool` flag with `env =` only accepts `true`/`false` and aborts the command on `MAIRU_NO_BROWSER=1`. |
 | Scope | Both Authorization Code and Device Code flows. |
 | Crate | `webbrowser` 1.2.1 (latest stable as of 2026-04-16). |
 | Headless safety | Skip auto-open when output is not a terminal (`is_terminal()` is false). |
@@ -89,7 +89,7 @@ Add an identical pure CLI flag to both `LoginArgs` (`src/cmd/login.rs`) and
 
 ```rust
 /// Do not automatically open the authentication URL in a browser.
-/// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+/// Can also be requested by setting the MAIRU_NO_BROWSER environment variable.
 #[arg(long, default_value_t = false)]
 pub no_browser: bool,
 ```
@@ -101,17 +101,13 @@ would error). Instead the env var is interpreted manually in `browser.rs`:
 
 ```rust
 pub fn no_browser_env() -> bool {
-    env_disables_browser(std::env::var("MAIRU_NO_BROWSER").ok().as_deref())
-}
-
-/// Pure core, unit-tested. Truthy = disable; anything else keeps auto-open.
-fn env_disables_browser(value: Option<&str>) -> bool {
-    matches!(
-        value.map(|v| v.trim().to_ascii_lowercase()).as_deref(),
-        Some("1" | "true" | "yes" | "on")
-    )
+    std::env::var_os("MAIRU_NO_BROWSER").is_some()
 }
 ```
+
+Presence-based, mirroring the existing `MAIRU_NO_AUTO_AGENT`
+(`src/cmd/agent.rs`): setting the variable to any value (even empty) disables
+auto-open.
 
 `cmd::login::login()` resolves the effective value once and passes it down:
 `let no_browser = args.no_browser || crate::browser::no_browser_env();`. Because

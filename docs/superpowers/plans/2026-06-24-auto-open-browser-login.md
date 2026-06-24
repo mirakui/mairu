@@ -190,7 +190,7 @@ pub struct LoginArgs {
     pub oauth_grant_type: Option<crate::config::OAuthGrantType>,
 
     /// Do not automatically open the authentication URL in a browser.
-    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    /// Can also be requested by setting the MAIRU_NO_BROWSER environment variable.
     #[arg(long, default_value_t = false)]
     pub no_browser: bool,
 
@@ -302,7 +302,7 @@ In `src/cmd/exec.rs`, add the following field to the `ExecArgs` struct (place it
 
 ```rust
     /// Do not automatically open the authentication URL in a browser when logging in.
-    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    /// Can also be requested by setting the MAIRU_NO_BROWSER environment variable.
     #[arg(long, default_value_t = false)]
     no_browser: bool,
 ```
