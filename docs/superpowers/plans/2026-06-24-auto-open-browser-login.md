@@ -190,13 +190,19 @@ pub struct LoginArgs {
     pub oauth_grant_type: Option<crate::config::OAuthGrantType>,
 
     /// Do not automatically open the authentication URL in a browser.
-    #[arg(long, env = "MAIRU_NO_BROWSER", default_value_t = false)]
+    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    #[arg(long, default_value_t = false)]
     pub no_browser: bool,
 
     /// Credential server ID or URL to use.
     pub server_name: String,
 }
 ```
+
+> **Note (post-review correction):** `MAIRU_NO_BROWSER` is interpreted manually
+> in `browser.rs` (`no_browser_env()`), not via clap `env =`, because a clap
+> `bool` flag with `env =` aborts on values like `MAIRU_NO_BROWSER=1`. See the
+> design spec for details.
 
 - [ ] **Step 2: Pass `no_browser` into the flow handlers**
 
@@ -296,9 +302,14 @@ In `src/cmd/exec.rs`, add the following field to the `ExecArgs` struct (place it
 
 ```rust
     /// Do not automatically open the authentication URL in a browser when logging in.
-    #[arg(long, env = "MAIRU_NO_BROWSER", default_value_t = false)]
+    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    #[arg(long, default_value_t = false)]
     no_browser: bool,
 ```
+
+> **Note (post-review correction):** the `env = "MAIRU_NO_BROWSER"` clap binding
+> shown in earlier drafts was removed; the env var is interpreted manually in
+> `browser.rs`. See the design spec.
 
 - [ ] **Step 2: Propagate into the constructed `LoginArgs`**
 

@@ -84,21 +84,40 @@ pub async fn open_url(url: &str) {
 
 ### Component: flag/env plumbing
 
-Add an identical field to both `LoginArgs` (`src/cmd/login.rs`) and `ExecArgs`
-(`src/cmd/exec.rs`), following the existing pattern used by `--server`
-(`MAIRU_SERVER`) and `--show-auto` (`MAIRU_SHOW_AUTO_ROLE`):
+Add an identical pure CLI flag to both `LoginArgs` (`src/cmd/login.rs`) and
+`ExecArgs` (`src/cmd/exec.rs`):
 
 ```rust
 /// Do not automatically open the authentication URL in a browser.
-#[arg(long, env = "MAIRU_NO_BROWSER", default_value_t = false)]
+/// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+#[arg(long, default_value_t = false)]
 pub no_browser: bool,
 ```
 
-Using clap's `env =` unifies the flag and the environment variable into a single
-field — no separate env lookup needed.
+The `MAIRU_NO_BROWSER` env var is **not** wired via clap's `env =`. A clap
+`bool` flag with `env =` only accepts the literal `true`/`false` from the
+environment and aborts the command on any other value (so `MAIRU_NO_BROWSER=1`
+would error). Instead the env var is interpreted manually in `browser.rs`:
 
-`src/cmd/exec.rs::login()` constructs a `LoginArgs`; add
-`no_browser: args.no_browser` so the setting propagates from `mairu exec`.
+```rust
+pub fn no_browser_env() -> bool {
+    env_disables_browser(std::env::var("MAIRU_NO_BROWSER").ok().as_deref())
+}
+
+/// Pure core, unit-tested. Truthy = disable; anything else keeps auto-open.
+fn env_disables_browser(value: Option<&str>) -> bool {
+    matches!(
+        value.map(|v| v.trim().to_ascii_lowercase()).as_deref(),
+        Some("1" | "true" | "yes" | "on")
+    )
+}
+```
+
+`cmd::login::login()` resolves the effective value once and passes it down:
+`let no_browser = args.no_browser || crate::browser::no_browser_env();`. Because
+`mairu exec`'s login path also goes through `cmd::login::login()`, the env var
+is honored for both entry points (and `src/cmd/exec.rs::login()` still sets
+`no_browser: args.no_browser` so the CLI flag propagates from `mairu exec`).
 
 ### Wiring into the flows
 
