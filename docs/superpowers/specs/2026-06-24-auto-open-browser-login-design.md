@@ -40,7 +40,7 @@ the Rust equivalent of CPython's `webbrowser` module used by aws-cli.
 | Topic | Decision |
 | --- | --- |
 | Trigger mode | Auto-open by default (opt-out), matching `aws sso login`. |
-| Disable mechanism | `--no-browser` flag **and** `MAIRU_NO_BROWSER` env var (unified via clap `env =`). |
+| Disable mechanism | `--no-browser` flag **and** `MAIRU_NO_BROWSER` env var. The env var is interpreted manually (truthy = `1`/`true`/`yes`/`on`) rather than via clap `env =`, because a clap `bool` flag with `env =` only accepts `true`/`false` and aborts the command on `MAIRU_NO_BROWSER=1`. |
 | Scope | Both Authorization Code and Device Code flows. |
 | Crate | `webbrowser` 1.2.1 (latest stable as of 2026-04-16). |
 | Headless safety | Skip auto-open when output is not a terminal (`is_terminal()` is false). |

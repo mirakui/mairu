@@ -31,7 +31,8 @@ pub struct ExecArgs {
     oauth_grant_type: Option<crate::config::OAuthGrantType>,
 
     /// Do not automatically open the authentication URL in a browser when logging in.
-    #[arg(long, env = "MAIRU_NO_BROWSER", default_value_t = false)]
+    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    #[arg(long, default_value_t = false)]
     no_browser: bool,
 
     /// Skip obtaining credentials before executing a command to verify valid configuration is given.

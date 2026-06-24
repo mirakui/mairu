@@ -5,7 +5,8 @@ pub struct LoginArgs {
     pub oauth_grant_type: Option<crate::config::OAuthGrantType>,
 
     /// Do not automatically open the authentication URL in a browser.
-    #[arg(long, env = "MAIRU_NO_BROWSER", default_value_t = false)]
+    /// Can also be set via the MAIRU_NO_BROWSER environment variable (1/true/yes/on).
+    #[arg(long, default_value_t = false)]
     pub no_browser: bool,
 
     /// Credential server ID or URL to use.
@@ -51,10 +52,15 @@ pub async fn login(
 
     tracing::debug!(oauth_grant_type = ?oauth_grant_type, server = ?server, "Using OAuth");
 
+    // The --no-browser flag and the MAIRU_NO_BROWSER environment variable both
+    // disable automatic browser opening. The env var is interpreted here (not
+    // via clap) so that values like `1` never abort the command.
+    let no_browser = args.no_browser || crate::browser::no_browser_env();
+
     match oauth_grant_type {
-        crate::config::OAuthGrantType::Code => do_oauth_code(agent, server, args.no_browser).await,
+        crate::config::OAuthGrantType::Code => do_oauth_code(agent, server, no_browser).await,
         crate::config::OAuthGrantType::DeviceCode => {
-            do_oauth_device_code(agent, server, args.no_browser).await
+            do_oauth_device_code(agent, server, no_browser).await
         }
     }
 }
