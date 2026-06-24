@@ -52,9 +52,7 @@ pub async fn login(
     tracing::debug!(oauth_grant_type = ?oauth_grant_type, server = ?server, "Using OAuth");
 
     match oauth_grant_type {
-        crate::config::OAuthGrantType::Code => {
-            do_oauth_code(agent, server, args.no_browser).await
-        }
+        crate::config::OAuthGrantType::Code => do_oauth_code(agent, server, args.no_browser).await,
         crate::config::OAuthGrantType::DeviceCode => {
             do_oauth_device_code(agent, server, args.no_browser).await
         }
