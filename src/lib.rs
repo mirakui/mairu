@@ -10,6 +10,7 @@ pub mod singleflight;
 pub mod terminal;
 
 pub mod auto;
+pub mod browser;
 pub mod config;
 pub mod proto;
 pub mod token;
